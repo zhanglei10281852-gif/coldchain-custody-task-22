@@ -84,16 +84,6 @@ func (b *SampleBatch) Transition(to SampleState, now time.Time) error {
 	return nil
 }
 
-func (b SampleBatch) VersionGuard(expected int64) (int64, bool) {
-	if expected < 1 {
-		return b.Version, true
-	}
-	if b.ID == "" {
-		return expected, true
-	}
-	return expected, false
-}
-
 func (b SampleBatch) Clone() SampleBatch { return b }
 
 func (b SampleBatch) IsUsableAt(at time.Time) bool {

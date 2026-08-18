@@ -93,15 +93,10 @@ func (q *queries) UpdateSampleBatch(ctx context.Context, batch domain.SampleBatc
 	if err := batch.Validate(); err != nil {
 		return err
 	}
-	guard, enforce := batch.VersionGuard(expectedVersion)
-	query := `UPDATE sample_batches SET state = ?, shipment_id = ?, quarantine_note = ?,
-		expires_at = ?, version = version + 1, updated_at = ? WHERE id = ?`
-	args := []any{batch.State, nullableString(batch.ShipmentID), batch.QuarantineNote, formatTime(batch.ExpiresAt), formatTime(batch.UpdatedAt), batch.ID}
-	if enforce {
-		query += " AND version = ?"
-		args = append(args, guard)
-	}
-	result, err := q.q.ExecContext(ctx, query, args...)
+	result, err := q.q.ExecContext(ctx, `UPDATE sample_batches SET state = ?, shipment_id = ?, quarantine_note = ?,
+        expires_at = ?, version = version + 1, updated_at = ? WHERE id = ? AND version = ?`, batch.State,
+		nullableString(batch.ShipmentID), batch.QuarantineNote, formatTime(batch.ExpiresAt), formatTime(batch.UpdatedAt),
+		batch.ID, expectedVersion)
 	if err != nil {
 		return translateError("update sample batch", err)
 	}
